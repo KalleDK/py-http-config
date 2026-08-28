@@ -17,6 +17,20 @@ def test_create_insecure_ssl_context_disables_verification() -> None:
     assert context.verify_mode == ssl.CERT_NONE
 
 
+def test_create_ssl_context_supports_default_custom_and_insecure_modes() -> None:
+    default_context = ssl_module.create_ssl_context(None)
+    custom_context = ssl_module.create_ssl_context(SSLConfig())
+    secure_context = ssl_module.create_ssl_context(True)
+    insecure_context = ssl_module.create_ssl_context(False)
+
+    assert default_context.verify_mode.value == 2
+    assert custom_context.verify_mode.value == 2
+    assert secure_context.verify_mode.value == 2
+    assert insecure_context is not default_context
+    assert insecure_context.check_hostname is False
+    assert insecure_context.verify_mode.value == 0
+
+
 def test_create_ssl_context_uses_system_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     create_default_context = Mock()
     monkeypatch.setattr(ssl, "create_default_context", create_default_context)

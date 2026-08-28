@@ -10,11 +10,45 @@ from http_config import HTTPConfig, LimitConfig, TimeoutConfig
 from http_config.httpx.client import (
     create_async_client,
     create_async_transport,
+    create_limits,
     create_sync_client,
     create_sync_transport,
+    create_timeout,
     create_transport_dct,
 )
 from http_config.httpx.logger import AsyncTransportLogger, FileLogger, SyncTransportLogger
+
+
+def test_create_timeout_handles_all_supported_values() -> None:
+    assert create_timeout(None) is None
+    assert create_timeout(False) == httpx.Timeout(timeout=None)
+    assert create_timeout(timedelta(seconds=3)) == httpx.Timeout(timeout=3)
+    assert create_timeout(TimeoutConfig()) is None
+
+    timeout = create_timeout(
+        TimeoutConfig(
+            timeout=timedelta(seconds=1),
+            read_timeout=False,
+            write_timeout=timedelta(seconds=2),
+            connect_timeout=timedelta(seconds=3),
+        )
+    )
+
+    assert timeout is not None
+    assert timeout.connect == 3
+    assert timeout.read is None
+    assert timeout.write == 2
+    assert timeout.pool == 1
+
+
+def test_create_limits_preserves_configured_values() -> None:
+    assert create_limits(None) is None
+
+    limits = create_limits(LimitConfig(max_connections=10, max_keepalive_connections=4))
+
+    assert limits is not None
+    assert limits.max_connections == 10
+    assert limits.max_keepalive_connections == 4
 
 
 def test_create_transport_dict_includes_proxy_limits_and_ssl() -> None:
