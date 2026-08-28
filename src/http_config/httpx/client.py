@@ -1,0 +1,178 @@
+from __future__ import annotations
+
+from datetime import timedelta
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
+
+import httpx
+
+from http_config._ssl import create_ssl_context
+from http_config.config import HTTPConfig, LimitConfig, TimeoutConfig
+from http_config.httpx.logger import AsyncTransportLogger, SyncTransportLogger
+
+if TYPE_CHECKING:
+    import ssl
+    from collections.abc import Callable
+
+__version__ = "0.1.0"
+
+
+# region Timeout
+
+
+class TimeoutDict(TypedDict):
+    timeout: NotRequired[float | None]
+    read: NotRequired[float | None]
+    write: NotRequired[float | None]
+    connect: NotRequired[float | None]
+
+
+def create_timeout(value: timedelta | Literal[False] | TimeoutConfig | None) -> httpx.Timeout | None:
+    match value:
+        case None:
+            return None
+        case TimeoutConfig() as v:
+            if v.timeout is None and v.read_timeout is None and v.write_timeout is None and v.connect_timeout is None:
+                return None
+
+            timeout_dct: TimeoutDict = {}
+            if v.timeout is not None:
+                timeout_dct["timeout"] = None if v.timeout is False else v.timeout.total_seconds()
+            if v.read_timeout is not None:
+                timeout_dct["read"] = None if v.read_timeout is False else v.read_timeout.total_seconds()
+            if v.write_timeout is not None:
+                timeout_dct["write"] = None if v.write_timeout is False else v.write_timeout.total_seconds()
+            if v.connect_timeout is not None:
+                timeout_dct["connect"] = None if v.connect_timeout is False else v.connect_timeout.total_seconds()
+            return httpx.Timeout(**timeout_dct)
+        case timedelta():
+            return httpx.Timeout(timeout=value.total_seconds())
+        case False:
+            return httpx.Timeout(timeout=None)
+
+
+# endregion
+
+# region Limits
+
+
+def create_limits(value: LimitConfig | None) -> httpx.Limits | None:
+    if value is None:
+        return None
+    return httpx.Limits(
+        max_connections=value.max_connections,
+        max_keepalive_connections=value.max_keepalive_connections,
+    )
+
+
+# endregion
+
+# region Transport
+
+
+class TransportDict(TypedDict):
+    verify: ssl.SSLContext
+    proxy: NotRequired[str]
+    limits: NotRequired[httpx.Limits]
+
+
+def create_transport_dct(http_config: HTTPConfig | None) -> TransportDict:
+    if http_config is None:
+        http_config = HTTPConfig()
+
+    transport_dct: TransportDict = {
+        "verify": create_ssl_context(http_config.ssl),
+    }
+
+    if (proxy := http_config.proxy) is not None:
+        transport_dct["proxy"] = proxy
+
+    if (limits := create_limits(http_config.limits)) is not None:
+        transport_dct["limits"] = limits
+
+    return transport_dct
+
+
+def create_async_transport(
+    http_config: HTTPConfig | None = None,
+    middleware: Callable[[httpx.AsyncBaseTransport], httpx.AsyncBaseTransport] | None = None,
+) -> httpx.AsyncBaseTransport:
+
+    transport = httpx.AsyncHTTPTransport(**create_transport_dct(http_config))
+    if http_config is not None and http_config.log_path is not None:
+        transport = AsyncTransportLogger(transport, http_config.log_path)
+    if middleware is not None:
+        transport = middleware(transport)
+    return transport
+
+
+def create_sync_transport(
+    http_config: HTTPConfig | None = None,
+    middleware: Callable[[httpx.BaseTransport], httpx.BaseTransport] | None = None,
+) -> httpx.BaseTransport:
+
+    transport = httpx.HTTPTransport(**create_transport_dct(http_config))
+    if http_config is not None and http_config.log_path is not None:
+        transport = SyncTransportLogger(transport, http_config.log_path)
+    if middleware is not None:
+        transport = middleware(transport)
+
+    return transport
+
+
+# endregion
+
+# region Client
+
+
+class ClientDict(TypedDict):
+    timeout: NotRequired[httpx.Timeout]
+
+
+def _create_client_dict(config: HTTPConfig) -> ClientDict:
+    dct: ClientDict = {}
+    if (timeout := create_timeout(config.timeout)) is not None:
+        dct["timeout"] = timeout
+    return dct
+
+
+def create_async_client(
+    http_config: HTTPConfig | None = None,
+    middleware: Callable[[httpx.AsyncBaseTransport], httpx.AsyncBaseTransport] | None = None,
+    auth: Callable[[httpx.AsyncClient], httpx.Auth] | httpx.Auth | None = None,
+) -> httpx.AsyncClient:
+
+    if http_config is None:
+        http_config = HTTPConfig()
+
+    client_dct = _create_client_dict(http_config)
+
+    client = httpx.AsyncClient(**client_dct, transport=create_async_transport(http_config, middleware=middleware))
+
+    if isinstance(auth, httpx.Auth):
+        client.auth = auth
+    elif auth is not None:
+        client.auth = auth(client)
+    return client
+
+
+def create_sync_client(
+    http_config: HTTPConfig | None = None,
+    middleware: Callable[[httpx.BaseTransport], httpx.BaseTransport] | None = None,
+    auth: Callable[[httpx.Client], httpx.Auth] | httpx.Auth | None = None,
+) -> httpx.Client:
+
+    if http_config is None:
+        http_config = HTTPConfig()
+
+    client_dct = _create_client_dict(http_config)
+
+    client = httpx.Client(**client_dct, transport=create_sync_transport(http_config, middleware=middleware))
+
+    if isinstance(auth, httpx.Auth):
+        client.auth = auth
+    elif auth is not None:
+        client.auth = auth(client)
+    return client
+
+
+# endregion
