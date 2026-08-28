@@ -1,0 +1,9 @@
+_commit: v1.3.18
+_src_path: https://github.com/KalleDK/copier-python.git
+email: git@k-moeller.dk
+full_name: Kalle M. Krog Aagaard
+module_slug: http_config
+project_description: A shared config to control HTTP clients
+project_name: HTTP Config
+python_version: '3.13'
+use_defaults: true
