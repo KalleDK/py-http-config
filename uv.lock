@@ -150,6 +150,7 @@ httpx = [
 
 [package.dev-dependencies]
 test = [
+    { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-cov" },
 ]
@@ -165,6 +166,7 @@ provides-extras = ["httpx"]
 [package.metadata.requires-dev]
 stubs = []
 test = [
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-cov", specifier = ">=7.1.0" },
 ]
