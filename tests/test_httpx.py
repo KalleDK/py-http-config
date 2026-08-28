@@ -3,8 +3,14 @@ import json
 from datetime import timedelta
 from pathlib import Path
 
-import httpx
 import pytest
+
+try:
+    import httpx
+except ModuleNotFoundError as error:
+    if error.name == "httpx":
+        pytest.skip("httpx is not installed", allow_module_level=True)
+    raise
 
 from http_config import HTTPConfig, LimitConfig, TimeoutConfig
 from http_config.httpx.client import (
