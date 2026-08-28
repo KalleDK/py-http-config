@@ -88,3 +88,11 @@ class HTTPConfig(BaseModel):
     limits: LimitConfig | None = None
     ssl: bool | SSLConfig | None = None
     log_path: pathlib.Path | None = None
+
+    def with_sub_log_path(self, sub_path: str | pathlib.Path) -> HTTPConfig:
+        if self.log_path is None:
+            return self
+
+        return self.model_copy(
+            update={"log_path": self.log_path / sub_path},
+        )

@@ -76,3 +76,19 @@ def test_http_config_accepts_nested_configuration_with_model_validate() -> None:
     assert config.timeout.timeout == timedelta(seconds=5)  # type: ignore[union-attr]
     assert config.limits.max_connections == 20  # type: ignore[union-attr]
     assert config.ssl.cafile == Path("ca.pem")  # type: ignore[union-attr]
+
+
+def test_http_config_with_sub_log_path_returns_self_without_log_path() -> None:
+    config = HTTPConfig()
+
+    assert config.with_sub_log_path("requests") is config
+
+
+def test_http_config_with_sub_log_path_appends_path_without_mutating_config() -> None:
+    config = HTTPConfig(log_path=Path("logs"))
+
+    updated = config.with_sub_log_path(Path("requests"))
+
+    assert updated is not config
+    assert config.log_path == Path("logs")
+    assert updated.log_path == Path("logs/requests")
