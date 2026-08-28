@@ -33,20 +33,20 @@ from http_config.httpx import sync_client
 
 
 config = HTTPConfig(
-	timeout=TimeoutConfig(
-		timeout=timedelta(seconds=10),
-		connect_timeout=timedelta(seconds=3),
-	),
-	limits=LimitConfig(
-		max_connections=50,
-		max_keepalive_connections=10,
-	),
+    timeout=TimeoutConfig(
+        timeout=timedelta(seconds=10),
+        connect_timeout=timedelta(seconds=3),
+    ),
+    limits=LimitConfig(
+        max_connections=50,
+        max_keepalive_connections=10,
+    ),
 )
 
 with sync_client(config) as client:
-	response = client.get("https://httpbin.org/get")
-	response.raise_for_status()
-	print(response.json())
+    response = client.get("https://httpbin.org/get")
+    response.raise_for_status()
+    print(response.json())
 ```
 
 For asynchronous code, use `async_client`:
@@ -56,10 +56,10 @@ from http_config.httpx import async_client
 
 
 async def fetch() -> dict:
-	async with async_client() as client:
-		response = await client.get("https://httpbin.org/get")
-		response.raise_for_status()
-		return response.json()
+    async with async_client() as client:
+        response = await client.get("https://httpbin.org/get")
+        response.raise_for_status()
+        return response.json()
 ```
 
 ## Configuration
@@ -87,15 +87,15 @@ from http_config import HTTPConfig, TimeoutConfig
 
 
 base = HTTPConfig(
-	timeout=TimeoutConfig(
-		timeout=timedelta(seconds=10),
-		read_timeout=timedelta(seconds=5),
-	),
+    timeout=TimeoutConfig(
+        timeout=timedelta(seconds=10),
+        read_timeout=timedelta(seconds=5),
+    ),
 )
 updated = base.model_merge(
-	HTTPConfig(
-		timeout=TimeoutConfig(connect_timeout=timedelta(seconds=3)),
-	)
+    HTTPConfig(
+        timeout=TimeoutConfig(connect_timeout=timedelta(seconds=3)),
+    )
 )
 
 assert updated.timeout.timeout == timedelta(seconds=10)
@@ -108,6 +108,11 @@ assert updated.timeout.connect_timeout == timedelta(seconds=3)
 The default is normal certificate verification. Set `ssl=False` to disable verification, or provide a
 custom CA file, directory, or certificate data with `SSLConfig`:
 
+If [certifi](https://github.com/certifi/python-certifi) is installed, its CA bundle is used automatically
+when no explicit `cafile` is configured. Install it separately with `uv add certifi` or
+`python -m pip install certifi`. An explicit `cafile` takes precedence; set `ignore_certifi=True` to opt out
+of the automatic certifi fallback.
+
 ```python
 from pathlib import Path
 
@@ -115,10 +120,19 @@ from http_config import HTTPConfig, SSLConfig
 
 
 config = HTTPConfig(
-	ssl=SSLConfig(
-		cafile=Path("certificates/ca.pem"),
-	),
+    ssl=SSLConfig(
+        cafile=Path("certificates/ca.pem"),
+    ),
 )
+```
+
+To disable the automatic certifi fallback:
+
+```python
+from http_config import HTTPConfig, SSLConfig
+
+
+config = HTTPConfig(ssl=SSLConfig(ignore_certifi=True))
 ```
 
 `SSLConfig.create()` is useful when settings come from optional application configuration:
@@ -142,7 +156,7 @@ from http_config.httpx import sync_client
 
 config = HTTPConfig(log_path=Path("http-logs"))
 with sync_client(config) as client:
-	client.get("https://httpbin.org/get")
+    client.get("https://httpbin.org/get")
 ```
 
 ## HTTPX Middleware and Authentication
@@ -157,14 +171,14 @@ from http_config.httpx import sync_client
 
 
 def middleware(transport: httpx.BaseTransport) -> httpx.BaseTransport:
-	return transport
+    return transport
 
 
 with sync_client(
-	middleware=middleware,
-	auth=httpx.BasicAuth("user", "password"),
+    middleware=middleware,
+    auth=httpx.BasicAuth("user", "password"),
 ) as client:
-	response = client.get("https://example.com")
+    response = client.get("https://example.com")
 ```
 
 ## Development
