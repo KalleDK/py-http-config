@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import pathlib
-from datetime import timedelta  # noqa: TC003
-from typing import Literal
+from datetime import timedelta
+from typing import Any, Literal
 
+import pydantic
 from pydantic_merge import BaseModel
 
 # region SSL
@@ -67,6 +68,13 @@ class TimeoutConfig(BaseModel):
     read_timeout: timedelta | Literal[False] | None = None
     write_timeout: timedelta | Literal[False] | None = None
     connect_timeout: timedelta | Literal[False] | None = None
+
+    @pydantic.model_validator(mode="before")
+    @classmethod
+    def _validate_base(cls, v: timedelta | str | dict[str, Any]) -> dict[str, Any]:
+        if isinstance(v, (timedelta, str)):
+            return {"timeout": v}
+        return v
 
 
 # endregion
