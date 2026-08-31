@@ -1,6 +1,6 @@
 [project]
 name = "http-config"
-version = "0.1.5.1"
+version = "0.1.6"
 description = "A shared config to control HTTP clients"
 readme = "README.md"
 requires-python = ">=3.13"
