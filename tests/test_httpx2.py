@@ -12,7 +12,8 @@ except ModuleNotFoundError as error:
         pytest.skip("httpx2 is not installed", allow_module_level=True)
     raise
 
-from http_config.httpx.client import (
+from http_config import HTTPConfig, LimitConfig, TimeoutConfig
+from http_config.httpx2.client import (
     create_async_client,
     create_async_transport,
     create_limits,
@@ -21,9 +22,7 @@ from http_config.httpx.client import (
     create_timeout,
     create_transport_dct,
 )
-from http_config.httpx.logger import AsyncTransportLogger, FileLogger, SyncTransportLogger
-
-from http_config import HTTPConfig, LimitConfig, TimeoutConfig
+from http_config.httpx2.logger import AsyncTransportLogger, FileLogger, SyncTransportLogger
 
 
 def test_create_timeout_handles_all_supported_values() -> None:

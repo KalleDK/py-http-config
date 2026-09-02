@@ -1,5 +1,5 @@
 from http_config import HTTPConfig
-from http_config.httpx import sync_client
+from http_config.httpx2 import sync_client
 
 if __name__ == "__main__":
     conf = HTTPConfig()

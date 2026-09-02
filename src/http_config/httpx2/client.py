@@ -7,7 +7,7 @@ import httpx2
 
 from http_config._ssl import create_ssl_context
 from http_config.config import HTTPConfig, LimitConfig, TimeoutConfig
-from http_config.httpx.logger import AsyncTransportLogger, SyncTransportLogger
+from http_config.httpx2.logger import AsyncTransportLogger, SyncTransportLogger
 
 if TYPE_CHECKING:
     import ssl

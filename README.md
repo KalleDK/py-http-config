@@ -4,23 +4,23 @@ Shared, typed configuration for Python HTTP clients. Keep proxy, timeout, connec
 logging settings in one Pydantic model and reuse them across client integrations.
 
 The core configuration models are client-library independent. The project currently provides an integration
-for [HTTPX](https://www.python-httpx.org/), with support for additional HTTP libraries planned for the future.
+for [HTTPX2](https://httpx2.pydantic.dev/), with support for additional HTTP libraries planned for the future.
 
 ## Installation
 
 Using `uv`:
 
 ```console
-uv add "http-config[httpx]"
+uv add "http-config[httpx2]"
 ```
 
 Using `pip`:
 
 ```console
-python -m pip install "http-config[httpx]"
+python -m pip install "http-config[httpx2]"
 ```
 
-The `httpx` extra installs the current HTTPX integration. The configuration models are available without any
+The `httpx2` extra installs the current HTTPX2 integration. The configuration models are available without any
 client-library extra, allowing future integrations to be added independently.
 
 ## Quick Start
@@ -29,7 +29,7 @@ client-library extra, allowing future integrations to be added independently.
 from datetime import timedelta
 
 from http_config import HTTPConfig, LimitConfig, TimeoutConfig
-from http_config.httpx import sync_client
+from http_config.httpx2 import sync_client
 
 
 config = HTTPConfig(
@@ -52,7 +52,7 @@ with sync_client(config) as client:
 For asynchronous code, use `async_client`:
 
 ```python
-from http_config.httpx import async_client
+from http_config.httpx2 import async_client
 
 
 async def fetch() -> dict:
@@ -151,7 +151,7 @@ index.
 from pathlib import Path
 
 from http_config import HTTPConfig
-from http_config.httpx import sync_client
+from http_config.httpx2 import sync_client
 
 
 config = HTTPConfig(log_path=Path("http-logs"))
@@ -159,24 +159,24 @@ with sync_client(config) as client:
     client.get("https://httpbin.org/get")
 ```
 
-## HTTPX Middleware and Authentication
+## HTTPX2 Middleware and Authentication
 
-The current HTTPX client factories accept an optional transport middleware function and either an HTTPX auth
+The current HTTPX2 client factories accept an optional transport middleware function and either an HTTPX auth
 object or a factory that receives the client:
 
 ```python
-import httpx
+import httpx2
 
-from http_config.httpx import sync_client
+from http_config.httpx2 import sync_client
 
 
-def middleware(transport: httpx.BaseTransport) -> httpx.BaseTransport:
+def middleware(transport: httpx2.BaseTransport) -> httpx2.BaseTransport:
     return transport
 
 
 with sync_client(
     middleware=middleware,
-    auth=httpx.BasicAuth("user", "password"),
+    auth=httpx2.BasicAuth("user", "password"),
 ) as client:
     response = client.get("https://example.com")
 ```

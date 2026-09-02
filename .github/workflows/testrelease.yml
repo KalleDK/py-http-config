@@ -33,8 +33,8 @@ jobs:
       - name: Test package
         run: uv run pytest -v
 
-      - name: Install httpx dependencies
-        run: uv sync --extra httpx --group test
+      - name: Install httpx2 dependencies
+        run: uv sync --extra httpx2 --group test
 
       - name: Test package
         run: uv run pytest -v
