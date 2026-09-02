@@ -65,9 +65,10 @@ class SSLConfig(BaseModel):
 
 class TimeoutConfig(BaseModel):
     timeout: timedelta | Literal[False] | None = None
-    read_timeout: timedelta | Literal[False] | None = None
-    write_timeout: timedelta | Literal[False] | None = None
-    connect_timeout: timedelta | Literal[False] | None = None
+    read: timedelta | Literal[False] | None = None
+    write: timedelta | Literal[False] | None = None
+    connect: timedelta | Literal[False] | None = None
+    pool: timedelta | Literal[False] | None = None
 
     @pydantic.model_validator(mode="before")
     @classmethod

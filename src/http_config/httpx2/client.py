@@ -24,6 +24,7 @@ class TimeoutDict(TypedDict):
     read: NotRequired[float | None]
     write: NotRequired[float | None]
     connect: NotRequired[float | None]
+    pool: NotRequired[float | None]
 
 
 def create_timeout(value: timedelta | Literal[False] | TimeoutConfig | None) -> httpx2.Timeout | None:
@@ -31,18 +32,22 @@ def create_timeout(value: timedelta | Literal[False] | TimeoutConfig | None) -> 
         case None:
             return None
         case TimeoutConfig() as v:
-            if v.timeout is None and v.read_timeout is None and v.write_timeout is None and v.connect_timeout is None:
+            if v.timeout is None and v.read is None and v.write is None and v.connect is None:
                 return None
 
-            timeout_dct: TimeoutDict = {}
-            if v.timeout is not None:
-                timeout_dct["timeout"] = None if v.timeout is False else v.timeout.total_seconds()
-            if v.read_timeout is not None:
-                timeout_dct["read"] = None if v.read_timeout is False else v.read_timeout.total_seconds()
-            if v.write_timeout is not None:
-                timeout_dct["write"] = None if v.write_timeout is False else v.write_timeout.total_seconds()
-            if v.connect_timeout is not None:
-                timeout_dct["connect"] = None if v.connect_timeout is False else v.connect_timeout.total_seconds()
+            timeout_dct: TimeoutDict = {
+                "timeout": None,
+            }
+            if v.timeout is not None and v.timeout is not False:
+                timeout_dct["timeout"] = v.timeout.total_seconds()
+            if v.read is not None:
+                timeout_dct["read"] = None if v.read is False else v.read.total_seconds()
+            if v.write is not None:
+                timeout_dct["write"] = None if v.write is False else v.write.total_seconds()
+            if v.connect is not None:
+                timeout_dct["connect"] = None if v.connect is False else v.connect.total_seconds()
+            if v.pool is not None:
+                timeout_dct["pool"] = None if v.pool is False else v.pool.total_seconds()
             return httpx2.Timeout(**timeout_dct)
         case timedelta():
             return httpx2.Timeout(timeout=value.total_seconds())

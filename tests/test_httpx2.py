@@ -34,9 +34,9 @@ def test_create_timeout_handles_all_supported_values() -> None:
     timeout = create_timeout(
         TimeoutConfig(
             timeout=timedelta(seconds=1),
-            read_timeout=False,
-            write_timeout=timedelta(seconds=2),
-            connect_timeout=timedelta(seconds=3),
+            read=False,
+            write=timedelta(seconds=2),
+            connect=timedelta(seconds=3),
         )
     )
 
