@@ -25,7 +25,7 @@ Documentation = "https://github.com/KalleDK/py-http-config"
 Repository = "https://github.com/KalleDK/py-http-config.git"
 
 [project.optional-dependencies]
-httpx = [
+httpx2 = [
     "httpx2>=2.12.0",
 ]
 
