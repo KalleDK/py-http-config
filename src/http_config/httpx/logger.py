@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-import httpx
+import httpx2
 
 if TYPE_CHECKING:
     import pathlib
@@ -30,7 +30,7 @@ class FileSession:
     suffix: str
     idx: int
 
-    def _write_req_headers(self, request: httpx.Request) -> None:
+    def _write_req_headers(self, request: httpx2.Request) -> None:
         data = {
             "method": request.method,
             "url": str(request.url),
@@ -43,7 +43,7 @@ class FileSession:
             return
         self.log_dir.joinpath(f"{self.prefix}_{self.idx:04d}_REQ_BODY{self.suffix}").write_bytes(data)
 
-    def _write_res_headers(self, response: httpx.Response) -> None:
+    def _write_res_headers(self, response: httpx2.Response) -> None:
         data = {
             "status_code": response.status_code,
             "headers": dict(response.headers),
@@ -55,19 +55,19 @@ class FileSession:
             return
         self.log_dir.joinpath(f"{self.prefix}_{self.idx:04d}_RES_BODY{self.suffix}").write_bytes(data)
 
-    async def awrite_request(self, request: httpx.Request) -> None:
+    async def awrite_request(self, request: httpx2.Request) -> None:
         self._write_req_headers(request)
         self._write_req_body(await request.aread())
 
-    async def awrite_response(self, response: httpx.Response) -> None:
+    async def awrite_response(self, response: httpx2.Response) -> None:
         self._write_res_headers(response)
         self._write_res_body(await response.aread())
 
-    def write_request(self, request: httpx.Request) -> None:
+    def write_request(self, request: httpx2.Request) -> None:
         self._write_req_headers(request)
         self._write_req_body(request.read())
 
-    def write_response(self, response: httpx.Response) -> None:
+    def write_response(self, response: httpx2.Response) -> None:
         self._write_res_headers(response)
         self._write_res_body(response.read())
 
@@ -96,15 +96,15 @@ class FileLogger:
         yield FileSession(self.log_dir, self.prefix, self.suffix, self.get_idx())
 
 
-class AsyncTransportLogger(httpx.AsyncBaseTransport):
-    def __init__(self, transport: httpx.AsyncBaseTransport, log_dir: pathlib.Path, suffix: str = ".txt") -> None:
+class AsyncTransportLogger(httpx2.AsyncBaseTransport):
+    def __init__(self, transport: httpx2.AsyncBaseTransport, log_dir: pathlib.Path, suffix: str = ".txt") -> None:
         self._logger = FileLogger(log_dir, suffix=suffix)
         self.transport = transport
 
     async def handle_async_request(
         self,
-        request: httpx.Request,
-    ) -> httpx.Response:
+        request: httpx2.Request,
+    ) -> httpx2.Response:
         with self._logger.session() as session:
             await session.awrite_request(request)
             response = await self.transport.handle_async_request(request)
@@ -112,15 +112,15 @@ class AsyncTransportLogger(httpx.AsyncBaseTransport):
             return response
 
 
-class SyncTransportLogger(httpx.BaseTransport):
-    def __init__(self, transport: httpx.BaseTransport, log_dir: pathlib.Path, suffix: str = ".txt") -> None:
+class SyncTransportLogger(httpx2.BaseTransport):
+    def __init__(self, transport: httpx2.BaseTransport, log_dir: pathlib.Path, suffix: str = ".txt") -> None:
         self._logger = FileLogger(log_dir, suffix=suffix)
         self.transport = transport
 
     def handle_request(
         self,
-        request: httpx.Request,
-    ) -> httpx.Response:
+        request: httpx2.Request,
+    ) -> httpx2.Response:
         with self._logger.session() as session:
             session.write_request(request)
             response = self.transport.handle_request(request)

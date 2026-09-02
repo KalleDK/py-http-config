@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 try:
-    import httpx
+    import httpx2
 except ModuleNotFoundError as error:
-    if error.name == "httpx":
-        pytest.skip("httpx is not installed", allow_module_level=True)
+    if error.name == "httpx2":
+        pytest.skip("httpx2 is not installed", allow_module_level=True)
     raise
 
 from http_config import HTTPConfig, LimitConfig, TimeoutConfig
@@ -27,8 +27,8 @@ from http_config.httpx.logger import AsyncTransportLogger, FileLogger, SyncTrans
 
 def test_create_timeout_handles_all_supported_values() -> None:
     assert create_timeout(None) is None
-    assert create_timeout(False) == httpx.Timeout(timeout=None)
-    assert create_timeout(timedelta(seconds=3)) == httpx.Timeout(timeout=3)
+    assert create_timeout(False) == httpx2.Timeout(timeout=None)
+    assert create_timeout(timedelta(seconds=3)) == httpx2.Timeout(timeout=3)
     assert create_timeout(TimeoutConfig()) is None
 
     timeout = create_timeout(
@@ -93,34 +93,34 @@ def test_create_transports_wrap_logging_enabled_transports(tmp_path: Path) -> No
 
 
 def test_create_sync_client_applies_timeout_auth_and_middleware() -> None:
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={"url": str(request.url)}, request=request)
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json={"url": str(request.url)}, request=request)
 
-    def middleware(_: httpx.BaseTransport) -> httpx.BaseTransport:
-        return httpx.MockTransport(handler)
+    def middleware(_: httpx2.BaseTransport) -> httpx2.BaseTransport:
+        return httpx2.MockTransport(handler)
 
     config = HTTPConfig(timeout=TimeoutConfig(timeout=timedelta(seconds=4)))
-    auth = httpx.BasicAuth("user", "password")
+    auth = httpx2.BasicAuth("user", "password")
 
     with create_sync_client(config, middleware=middleware, auth=auth) as client:
         response = client.get("https://example.test/resource")
 
         assert response.status_code == 200
-        assert client.timeout == httpx.Timeout(timeout=4)
+        assert client.timeout == httpx2.Timeout(timeout=4)
         assert client.auth is auth
 
 
 def test_create_async_client_applies_callable_auth_and_middleware() -> None:
     async def scenario() -> None:
-        def handler(request: httpx.Request) -> httpx.Response:
-            return httpx.Response(200, request=request)
+        def handler(request: httpx2.Request) -> httpx2.Response:
+            return httpx2.Response(200, request=request)
 
-        def middleware(_: httpx.AsyncBaseTransport) -> httpx.AsyncBaseTransport:
-            return httpx.MockTransport(handler)
+        def middleware(_: httpx2.AsyncBaseTransport) -> httpx2.AsyncBaseTransport:
+            return httpx2.MockTransport(handler)
 
-        auth = httpx.DigestAuth("user", "password")
+        auth = httpx2.DigestAuth("user", "password")
 
-        def create_auth(_: httpx.AsyncClient) -> httpx.Auth:
+        def create_auth(_: httpx2.AsyncClient) -> httpx2.Auth:
             return auth
 
         async with create_async_client(middleware=middleware, auth=create_auth) as client:
@@ -134,15 +134,15 @@ def test_create_async_client_applies_callable_auth_and_middleware() -> None:
 
 def test_create_clients_support_default_config_and_auth_objects() -> None:
     async def close_async_client() -> None:
-        auth = httpx.BasicAuth("user", "password")
+        auth = httpx2.BasicAuth("user", "password")
         client = create_async_client(auth=auth)
         assert client.auth is auth
         await client.aclose()
 
-    def create_auth(_: httpx.Client) -> httpx.Auth:
+    def create_auth(_: httpx2.Client) -> httpx2.Auth:
         return auth
 
-    auth = httpx.BasicAuth("user", "password")
+    auth = httpx2.BasicAuth("user", "password")
     client = create_sync_client(auth=auth)
     assert client.auth is auth
     client.close()
@@ -165,11 +165,11 @@ def test_file_logger_rejects_existing_file_and_disabled_directory_creation(tmp_p
 
 
 def test_sync_transport_logger_writes_request_and_response(tmp_path: Path) -> None:
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(201, content=b"response", request=request)
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(201, content=b"response", request=request)
 
-    logger = SyncTransportLogger(httpx.MockTransport(handler), tmp_path)
-    request = httpx.Request("POST", "https://example.test", content=b"request")
+    logger = SyncTransportLogger(httpx2.MockTransport(handler), tmp_path)
+    request = httpx2.Request("POST", "https://example.test", content=b"request")
     response = logger.handle_request(request)
 
     assert response.status_code == 201
@@ -183,11 +183,11 @@ def test_sync_transport_logger_writes_request_and_response(tmp_path: Path) -> No
 
 
 def test_sync_transport_logger_skips_empty_bodies(tmp_path: Path) -> None:
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(204, request=request)
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(204, request=request)
 
-    logger = SyncTransportLogger(httpx.MockTransport(handler), tmp_path)
-    logger.handle_request(httpx.Request("GET", "https://example.test"))
+    logger = SyncTransportLogger(httpx2.MockTransport(handler), tmp_path)
+    logger.handle_request(httpx2.Request("GET", "https://example.test"))
 
     assert list(tmp_path.glob("*_REQ_BODY.txt")) == []
     assert list(tmp_path.glob("*_RES_BODY.txt")) == []
@@ -195,11 +195,11 @@ def test_sync_transport_logger_skips_empty_bodies(tmp_path: Path) -> None:
 
 def test_async_transport_logger_writes_request_and_response(tmp_path: Path) -> None:
     async def scenario() -> None:
-        async def handler(request: httpx.Request) -> httpx.Response:
-            return httpx.Response(202, content=b"async response", request=request)
+        async def handler(request: httpx2.Request) -> httpx2.Response:
+            return httpx2.Response(202, content=b"async response", request=request)
 
-        logger = AsyncTransportLogger(httpx.MockTransport(handler), tmp_path)
-        request = httpx.Request("GET", "https://example.test", content=b"async request")
+        logger = AsyncTransportLogger(httpx2.MockTransport(handler), tmp_path)
+        request = httpx2.Request("GET", "https://example.test", content=b"async request")
         response = await logger.handle_async_request(request)
 
         assert response.status_code == 202

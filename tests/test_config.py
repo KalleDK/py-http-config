@@ -58,9 +58,12 @@ def test_http_config_accepts_nested_configuration() -> None:
     )
 
     assert config.proxy == "https://proxy.example"
-    assert config.timeout.timeout == timedelta(seconds=5)  # type: ignore[union-attr]
-    assert config.limits.max_connections == 20  # type: ignore[union-attr]
-    assert config.ssl.cafile == Path("ca.pem")  # type: ignore[union-attr]
+    assert isinstance(config.timeout, TimeoutConfig)
+    assert config.timeout.timeout == timedelta(seconds=5)
+    assert isinstance(config.limits, LimitConfig)
+    assert config.limits.max_connections == 20
+    assert isinstance(config.ssl, SSLConfig)
+    assert config.ssl.cafile == Path("ca.pem")
 
 
 def test_http_config_accepts_nested_configuration_with_model_validate() -> None:
@@ -73,9 +76,12 @@ def test_http_config_accepts_nested_configuration_with_model_validate() -> None:
     )
 
     assert config.proxy == "https://proxy.example"
-    assert config.timeout.timeout == timedelta(seconds=5)  # type: ignore[union-attr]
-    assert config.limits.max_connections == 20  # type: ignore[union-attr]
-    assert config.ssl.cafile == Path("ca.pem")  # type: ignore[union-attr]
+    assert isinstance(config.timeout, TimeoutConfig)
+    assert config.timeout.timeout == timedelta(seconds=5)
+    assert isinstance(config.limits, LimitConfig)
+    assert config.limits.max_connections == 20
+    assert isinstance(config.ssl, SSLConfig)
+    assert config.ssl.cafile == Path("ca.pem")
 
 
 def test_http_config_with_sub_log_path_returns_self_without_log_path() -> None:

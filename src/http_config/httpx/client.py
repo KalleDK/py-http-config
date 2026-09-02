@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
-import httpx
+import httpx2
 
 from http_config._ssl import create_ssl_context
 from http_config.config import HTTPConfig, LimitConfig, TimeoutConfig
@@ -26,7 +26,7 @@ class TimeoutDict(TypedDict):
     connect: NotRequired[float | None]
 
 
-def create_timeout(value: timedelta | Literal[False] | TimeoutConfig | None) -> httpx.Timeout | None:
+def create_timeout(value: timedelta | Literal[False] | TimeoutConfig | None) -> httpx2.Timeout | None:
     match value:
         case None:
             return None
@@ -43,11 +43,11 @@ def create_timeout(value: timedelta | Literal[False] | TimeoutConfig | None) -> 
                 timeout_dct["write"] = None if v.write_timeout is False else v.write_timeout.total_seconds()
             if v.connect_timeout is not None:
                 timeout_dct["connect"] = None if v.connect_timeout is False else v.connect_timeout.total_seconds()
-            return httpx.Timeout(**timeout_dct)
+            return httpx2.Timeout(**timeout_dct)
         case timedelta():
-            return httpx.Timeout(timeout=value.total_seconds())
+            return httpx2.Timeout(timeout=value.total_seconds())
         case False:
-            return httpx.Timeout(timeout=None)
+            return httpx2.Timeout(timeout=None)
 
 
 # endregion
@@ -55,10 +55,10 @@ def create_timeout(value: timedelta | Literal[False] | TimeoutConfig | None) -> 
 # region Limits
 
 
-def create_limits(value: LimitConfig | None) -> httpx.Limits | None:
+def create_limits(value: LimitConfig | None) -> httpx2.Limits | None:
     if value is None:
         return None
-    return httpx.Limits(
+    return httpx2.Limits(
         max_connections=value.max_connections,
         max_keepalive_connections=value.max_keepalive_connections,
     )
@@ -72,7 +72,7 @@ def create_limits(value: LimitConfig | None) -> httpx.Limits | None:
 class TransportDict(TypedDict):
     verify: ssl.SSLContext
     proxy: NotRequired[str]
-    limits: NotRequired[httpx.Limits]
+    limits: NotRequired[httpx2.Limits]
 
 
 def create_transport_dct(http_config: HTTPConfig | None) -> TransportDict:
@@ -94,10 +94,10 @@ def create_transport_dct(http_config: HTTPConfig | None) -> TransportDict:
 
 def create_async_transport(
     http_config: HTTPConfig | None = None,
-    middleware: Callable[[httpx.AsyncBaseTransport], httpx.AsyncBaseTransport] | None = None,
-) -> httpx.AsyncBaseTransport:
+    middleware: Callable[[httpx2.AsyncBaseTransport], httpx2.AsyncBaseTransport] | None = None,
+) -> httpx2.AsyncBaseTransport:
 
-    transport = httpx.AsyncHTTPTransport(**create_transport_dct(http_config))
+    transport = httpx2.AsyncHTTPTransport(**create_transport_dct(http_config))
     if http_config is not None and http_config.log_path is not None:
         transport = AsyncTransportLogger(transport, http_config.log_path)
     if middleware is not None:
@@ -107,10 +107,10 @@ def create_async_transport(
 
 def create_sync_transport(
     http_config: HTTPConfig | None = None,
-    middleware: Callable[[httpx.BaseTransport], httpx.BaseTransport] | None = None,
-) -> httpx.BaseTransport:
+    middleware: Callable[[httpx2.BaseTransport], httpx2.BaseTransport] | None = None,
+) -> httpx2.BaseTransport:
 
-    transport = httpx.HTTPTransport(**create_transport_dct(http_config))
+    transport = httpx2.HTTPTransport(**create_transport_dct(http_config))
     if http_config is not None and http_config.log_path is not None:
         transport = SyncTransportLogger(transport, http_config.log_path)
     if middleware is not None:
@@ -125,7 +125,7 @@ def create_sync_transport(
 
 
 class ClientDict(TypedDict):
-    timeout: NotRequired[httpx.Timeout]
+    timeout: NotRequired[httpx2.Timeout]
 
 
 def _create_client_dict(config: HTTPConfig) -> ClientDict:
@@ -137,18 +137,18 @@ def _create_client_dict(config: HTTPConfig) -> ClientDict:
 
 def create_async_client(
     http_config: HTTPConfig | None = None,
-    middleware: Callable[[httpx.AsyncBaseTransport], httpx.AsyncBaseTransport] | None = None,
-    auth: Callable[[httpx.AsyncClient], httpx.Auth] | httpx.Auth | None = None,
-) -> httpx.AsyncClient:
+    middleware: Callable[[httpx2.AsyncBaseTransport], httpx2.AsyncBaseTransport] | None = None,
+    auth: Callable[[httpx2.AsyncClient], httpx2.Auth] | httpx2.Auth | None = None,
+) -> httpx2.AsyncClient:
 
     if http_config is None:
         http_config = HTTPConfig()
 
     client_dct = _create_client_dict(http_config)
 
-    client = httpx.AsyncClient(**client_dct, transport=create_async_transport(http_config, middleware=middleware))
+    client = httpx2.AsyncClient(**client_dct, transport=create_async_transport(http_config, middleware=middleware))
 
-    if isinstance(auth, httpx.Auth):
+    if isinstance(auth, httpx2.Auth):
         client.auth = auth
     elif auth is not None:
         client.auth = auth(client)
@@ -157,18 +157,18 @@ def create_async_client(
 
 def create_sync_client(
     http_config: HTTPConfig | None = None,
-    middleware: Callable[[httpx.BaseTransport], httpx.BaseTransport] | None = None,
-    auth: Callable[[httpx.Client], httpx.Auth] | httpx.Auth | None = None,
-) -> httpx.Client:
+    middleware: Callable[[httpx2.BaseTransport], httpx2.BaseTransport] | None = None,
+    auth: Callable[[httpx2.Client], httpx2.Auth] | httpx2.Auth | None = None,
+) -> httpx2.Client:
 
     if http_config is None:
         http_config = HTTPConfig()
 
     client_dct = _create_client_dict(http_config)
 
-    client = httpx.Client(**client_dct, transport=create_sync_transport(http_config, middleware=middleware))
+    client = httpx2.Client(**client_dct, transport=create_sync_transport(http_config, middleware=middleware))
 
-    if isinstance(auth, httpx.Auth):
+    if isinstance(auth, httpx2.Auth):
         client.auth = auth
     elif auth is not None:
         client.auth = auth(client)
