@@ -108,11 +108,6 @@ assert updated.timeout.connect_timeout == timedelta(seconds=3)
 The default is normal certificate verification. Set `ssl=False` to disable verification, or provide a
 custom CA file, directory, or certificate data with `SSLConfig`:
 
-If [certifi](https://github.com/certifi/python-certifi) is installed, its CA bundle is used automatically
-when no explicit `cafile` is configured. Install it separately with `uv add certifi` or
-`python -m pip install certifi`. An explicit `cafile` takes precedence; set `ignore_certifi=True` to opt out
-of the automatic certifi fallback.
-
 ```python
 from pathlib import Path
 
@@ -124,15 +119,6 @@ config = HTTPConfig(
         cafile=Path("certificates/ca.pem"),
     ),
 )
-```
-
-To disable the automatic certifi fallback:
-
-```python
-from http_config import HTTPConfig, SSLConfig
-
-
-config = HTTPConfig(ssl=SSLConfig(ignore_certifi=True))
 ```
 
 `SSLConfig.create()` is useful when settings come from optional application configuration:
