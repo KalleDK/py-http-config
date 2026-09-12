@@ -1,0 +1,263 @@
+{
+    "$defs": {
+        "HTTPConfig": {
+            "properties": {
+                "proxy": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Proxy"
+                },
+                "timeout": {
+                    "anyOf": [
+                        {
+                            "format": "duration",
+                            "type": "string"
+                        },
+                        {
+                            "const": false,
+                            "type": "boolean"
+                        },
+                        {
+                            "$ref": "#/$defs/TimeoutConfig"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Timeout"
+                },
+                "limits": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/LimitConfig"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null
+                },
+                "ssl": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "$ref": "#/$defs/SSLConfig"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Ssl"
+                },
+                "log_path": {
+                    "anyOf": [
+                        {
+                            "format": "path",
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Path to the log directory",
+                    "examples": [
+                        "/var/log/http_config",
+                        "./logs"
+                    ],
+                    "title": "Log Path"
+                }
+            },
+            "title": "HTTPConfig",
+            "type": "object"
+        },
+        "LimitConfig": {
+            "properties": {
+                "max_connections": {
+                    "anyOf": [
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Max Connections"
+                },
+                "max_keepalive_connections": {
+                    "anyOf": [
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Max Keepalive Connections"
+                }
+            },
+            "title": "LimitConfig",
+            "type": "object"
+        },
+        "SSLConfig": {
+            "properties": {
+                "cafile": {
+                    "anyOf": [
+                        {
+                            "format": "path",
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Cafile"
+                },
+                "capath": {
+                    "anyOf": [
+                        {
+                            "format": "path",
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Capath"
+                },
+                "cadata": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "format": "binary",
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Cadata"
+                }
+            },
+            "title": "SSLConfig",
+            "type": "object"
+        },
+        "TimeoutConfig": {
+            "properties": {
+                "timeout": {
+                    "anyOf": [
+                        {
+                            "format": "duration",
+                            "type": "string"
+                        },
+                        {
+                            "const": false,
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Timeout"
+                },
+                "read": {
+                    "anyOf": [
+                        {
+                            "format": "duration",
+                            "type": "string"
+                        },
+                        {
+                            "const": false,
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Read"
+                },
+                "write": {
+                    "anyOf": [
+                        {
+                            "format": "duration",
+                            "type": "string"
+                        },
+                        {
+                            "const": false,
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Write"
+                },
+                "connect": {
+                    "anyOf": [
+                        {
+                            "format": "duration",
+                            "type": "string"
+                        },
+                        {
+                            "const": false,
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Connect"
+                },
+                "pool": {
+                    "anyOf": [
+                        {
+                            "format": "duration",
+                            "type": "string"
+                        },
+                        {
+                            "const": false,
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Pool"
+                }
+            },
+            "title": "TimeoutConfig",
+            "type": "object"
+        }
+    },
+    "properties": {
+        "http": {
+            "$ref": "#/$defs/HTTPConfig"
+        }
+    },
+    "required": [],
+    "title": "Config",
+    "type": "object"
+}

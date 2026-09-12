@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import ssl as _ssl
 
-from http_config.config import CERTIFI_PATH, SSLConfig
+from http_config.config import SSLConfig
 
 # region SSL
 
@@ -28,9 +28,7 @@ def create_ssl_context(ssl_config: SSLConfig | bool | None) -> _ssl.SSLContext:
         case bool():
             if ssl_config is False:
                 return create_insecure_ssl_context()
-            return _ssl.create_default_context(
-                cafile=CERTIFI_PATH,
-            )
+            return _ssl.create_default_context()
 
 
 # endregion

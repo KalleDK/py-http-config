@@ -11,5 +11,16 @@
             "source.organizeImports.ruff": "always"
         }
     },
-    "ruff.configuration": "pyproject.toml"
+    "ruff.configuration": "pyproject.toml",
+    "json.schemas": [
+        {
+            "fileMatch": ["config.yml"],
+            "url": "./schemas/config.json"
+        }
+    ],
+    "yaml.schemas": {
+        "./schemas/config.json": [
+            "config.yml"
+        ]
+    }
 }

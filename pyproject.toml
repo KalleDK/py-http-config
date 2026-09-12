@@ -31,7 +31,6 @@ httpx2 = [
 
 [dependency-groups]
 test = [
-    "certifi>=2026.7.22",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
 ]
@@ -82,6 +81,8 @@ quote-style = "double"
 indent-style = "space"
 line-ending = "lf"
 
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel", "pydantic_merge.BaseModel"]
 
 [tool.pytest.ini_options]
 addopts = "-v --cov=http_config --cov-report=term-missing --cov-report=xml"

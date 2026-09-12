@@ -37,6 +37,7 @@ def test_create_timeout_handles_all_supported_values() -> None:
             read=False,
             write=timedelta(seconds=2),
             connect=timedelta(seconds=3),
+            pool=timedelta(seconds=4),
         )
     )
 
@@ -44,7 +45,7 @@ def test_create_timeout_handles_all_supported_values() -> None:
     assert timeout.connect == 3
     assert timeout.read is None
     assert timeout.write == 2
-    assert timeout.pool == 1
+    assert timeout.pool == 4
 
 
 def test_create_limits_preserves_configured_values() -> None:

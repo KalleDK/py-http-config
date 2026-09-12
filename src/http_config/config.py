@@ -10,33 +10,17 @@ from pydantic_merge import BaseModel
 # region SSL
 
 
-def load_certifi() -> pathlib.Path | None:
-    try:
-        import certifi
-
-        return pathlib.Path(certifi.where())
-    except ImportError:
-        return None
-
-
-CERTIFI_PATH: pathlib.Path | None = load_certifi()
-
-
 class SSLConfig(BaseModel):
     cafile: pathlib.Path | None = None
     capath: pathlib.Path | None = None
     cadata: str | bytes | None = None
-    ignore_certifi: bool | None = None
 
     @property
     def cafile_normalized(self) -> pathlib.Path | None:
         if self.cafile is not None:
             return self.cafile
 
-        if self.ignore_certifi is True:
-            return None
-
-        return CERTIFI_PATH
+        return None
 
     @classmethod
     def create(
@@ -96,7 +80,9 @@ class HTTPConfig(BaseModel):
     timeout: timedelta | Literal[False] | TimeoutConfig | None = None
     limits: LimitConfig | None = None
     ssl: bool | SSLConfig | None = None
-    log_path: pathlib.Path | None = None
+    log_path: pathlib.Path | None = pydantic.Field(
+        default=None, description="Path to the log directory", examples=["/var/log/http_config", "./logs"]
+    )
 
     def with_sub_log_path(self, sub_path: str | pathlib.Path) -> HTTPConfig:
         if self.log_path is None:
